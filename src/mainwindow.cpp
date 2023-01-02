@@ -8,6 +8,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    Converter::setLogCallback([this](const QString& text)
+    {
+        log->addLine(text);
+    });
 }
 
 MainWindow::~MainWindow()
@@ -39,7 +44,9 @@ void MainWindow::on_pushButtonFindGMS2Folder_clicked()
 
 void MainWindow::on_pushButtonBreakToExitConvert_clicked()
 {
+    log->clear();
     showNotes(Converter::breakToExit(ui->lineEditGMS2Folder->text()));
+    log->show();
 }
 
 void MainWindow::showNotes(const QList<Converter::Note> &notes)

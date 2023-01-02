@@ -10,14 +10,17 @@ CONFIG += c++11
 
 SOURCES += \
     converter.cpp \
+    logwindow.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     converter.h \
+    logwindow.h \
     mainwindow.h
 
 FORMS += \
+    logwindow.ui \
     mainwindow.ui
 
 win32: {

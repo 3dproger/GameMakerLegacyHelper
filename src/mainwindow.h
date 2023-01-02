@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "converter.h"
+#include "logwindow.h"
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
@@ -25,6 +26,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    LogWindow* log = new LogWindow(this);
 
     void showNotes(const QList<Converter::Note>& notes);
 };
