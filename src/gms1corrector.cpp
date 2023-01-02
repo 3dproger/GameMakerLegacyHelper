@@ -3,11 +3,44 @@
 #include <QProcess>
 #include <QDir>
 #include <QCoreApplication>
+#include <QStandardPaths>
+#include <QDebug>
+#include <thread>
 
 namespace
 {
 
 static std::function<void(const QString&)> logCallback = nullptr;
+
+bool removeDir(QString dirName)
+{
+    bool result = true;
+    QDir dir(dirName);
+
+    if (dir.exists(dirName))
+    {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst))
+        {
+            if (info.isDir())
+            {
+                result = removeDir(info.absoluteFilePath());
+            }
+            else
+            {
+                result = QFile::remove(info.absoluteFilePath());
+            }
+
+            if (!result)
+            {
+                return result;
+            }
+        }
+
+        result = dir.rmdir(dirName);
+    }
+
+    return result;
+}
 
 }
 
@@ -59,18 +92,46 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
         return;
     }
 
+    const QString temp = QStandardPaths::writableLocation(QStandardPaths::StandardLocation::TempLocation);
+    if (temp.isEmpty())
+    {
+        log("Writable temp directory not found");
+        return;
+    }
+
+    const QString gmkSplitOutput = temp + "/gmksplit_output";
+
+    log(QString("GmkSplit output: \"%1\"").arg(gmkSplitOutput));
+
+    if (!removeDir(gmkSplitOutput))
+    {
+        log(QString("Problem deleting folder \"%1\"").arg(gmkSplitOutput));
+    }
+
+    QProcess process;
+
+    QObject::connect(&process, &QProcess::readyRead, [&process]()
+    {
+        log(process.readAll());
+    });
+
+    process.start(gmkSplit.absoluteFilePath(), { gmk.absoluteFilePath(), gmkSplitOutput });
+    process.waitForFinished(-1);
+    if (process.exitStatus() == QProcess::ExitStatus::CrashExit)
+    {
+        log(QString("Failed to execute GmkSplit, exit code: %1").arg(process.exitCode()));
+        return;
+    }
+
     log("Done!");
 }
 
 void GMS1Corrector::log(const QString &text)
 {
+    qDebug(text.toUtf8());
+
     if (logCallback)
     {
         logCallback(text);
-    }
-    else
-    {
-        wprintf(text.toStdWString().c_str());
-        wprintf(L"\n");
     }
 }

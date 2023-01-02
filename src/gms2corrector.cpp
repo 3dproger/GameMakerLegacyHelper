@@ -109,14 +109,11 @@ bool GMS2Corrector::isContainsWord(const QByteArray &text, const QByteArray &wor
 
 void GMS2Corrector::log(const QString &text)
 {
+    qDebug(text.toUtf8());
+
     if (logCallback)
     {
         logCallback(text);
-    }
-    else
-    {
-        wprintf(text.toStdWString().c_str());
-        wprintf(L"\n");
     }
 }
 
