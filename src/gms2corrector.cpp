@@ -1,7 +1,6 @@
-#include "converter.h"
+#include "gms2corrector.h"
 #include <QDirIterator>
 #include <QFile>
-#include <QTranslator>
 #include <QDir>
 #include <QTextStream>
 
@@ -12,17 +11,18 @@ static std::function<void(const QString&)> logCallback = nullptr;
 
 }
 
-void Converter::setLogCallback(std::function<void (const QString &)> callback)
+void GMS2Corrector::setLogCallback(std::function<void (const QString &)> callback)
 {
     logCallback = callback;
 }
 
-QList<Converter::Note> Converter::breakToExit(const QString& gms2folder_)
+void GMS2Corrector::breakToExit(const QString& gms2folder_)
 {
     const QString gms2folder = gms2folder_.trimmed();
     if (gms2folder.isEmpty())
     {
-        return QList<Converter::Note>({ Note(Note::Error, QTranslator::tr("GMS2 Folder project is empty")) });
+        log("GMS2 Folder project is empty");
+        return;
     }
 
     static const QString FileProjectSuffix = "YYP";
@@ -42,7 +42,8 @@ QList<Converter::Note> Converter::breakToExit(const QString& gms2folder_)
 
     if (!foundProjectFile)
     {
-        return QList<Converter::Note>({ Note(Note::Error, QTranslator::tr("GMS2 Folder project does not contain a project file %1").arg(FileProjectSuffix)) });
+        log(QString("GMS2 Folder project does not contain a project file %1").arg(FileProjectSuffix));
+        return;
     }
 
     QDirIterator it(gms2folder, QStringList() << "*.gml", QDir::Files, QDirIterator::Subdirectories);
@@ -77,10 +78,10 @@ QList<Converter::Note> Converter::breakToExit(const QString& gms2folder_)
         log(QString("Converted file \"%1\"").arg(fileName));
     }
 
-    return QList<Converter::Note>();
+    log("Done!");
 }
 
-bool Converter::isContainsWord(const QByteArray &text, const QByteArray &word)
+bool GMS2Corrector::isContainsWord(const QByteArray &text, const QByteArray &word)
 {
     if (word.isEmpty() || text.isEmpty())
     {
@@ -107,7 +108,7 @@ bool Converter::isContainsWord(const QByteArray &text, const QByteArray &word)
     return false;
 }
 
-void Converter::log(const QString &text)
+void GMS2Corrector::log(const QString &text)
 {
     if (logCallback)
     {
@@ -120,7 +121,7 @@ void Converter::log(const QString &text)
     }
 }
 
-QByteArray Converter::readFile(const QString &fileName)
+QByteArray GMS2Corrector::readFile(const QString &fileName)
 {
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))

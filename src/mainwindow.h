@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "converter.h"
+#include "gms2corrector.h"
 #include "logwindow.h"
 #include <QMainWindow>
 
@@ -31,7 +31,5 @@ private slots:
 private:
     Ui::MainWindow *ui;
     LogWindow* log = new LogWindow(this);
-
-    void showNotes(const QList<Converter::Note>& notes);
 };
 #endif // MAINWINDOW_H

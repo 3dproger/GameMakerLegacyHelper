@@ -3,24 +3,11 @@
 #include <QString>
 #include <functional>
 
-class Converter
+class GMS2Corrector
 {
 public:
-    struct Note
-    {
-        enum Type { Error };
-
-        Note(const Type type_, const QString& text_)
-            : type(type_)
-            , text(text_)
-        {}
-
-        Type type;
-        QString text;
-    };
-
     static void setLogCallback(std::function<void(const QString&)> callback);
-    static QList<Note> breakToExit(const QString& gms2folder);
+    static void breakToExit(const QString& gms2folder);
 
 private:
     static bool isContainsWord(const QByteArray& text, const QByteArray& word);

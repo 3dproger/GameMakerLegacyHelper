@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QFileDialog>
-#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,7 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    Converter::setLogCallback([this](const QString& text)
+    GMS2Corrector::setLogCallback([this](const QString& text)
     {
         log->addLine(text);
     });
@@ -56,32 +55,9 @@ void MainWindow::on_pushButtonFindGMS2Folder_clicked()
 void MainWindow::on_pushButtonBreakToExitConvert_clicked()
 {
     log->clear();
-    showNotes(Converter::breakToExit(ui->lineEditGMS2Folder->text()));
+    GMS2Corrector::breakToExit(ui->lineEditGMS2Folder->text());
     log->show();
 }
-
-void MainWindow::showNotes(const QList<Converter::Note> &notes)
-{
-    for (const Converter::Note& note : qAsConst(notes))
-    {
-        switch (note.type)
-        {
-        case Converter::Note::Error:
-            QMessageBox::critical(this, tr("Error"), note.text);
-            break;
-
-        default:
-            QMessageBox::information(this, tr("Note"), note.text);
-            break;
-        }
-    }
-
-    if (notes.isEmpty())
-    {
-        QMessageBox::information(this, tr("Note"), tr("Done"));
-    }
-}
-
 
 void MainWindow::on_pushButtonConvertFunctions_clicked()
 {

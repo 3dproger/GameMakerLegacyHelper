@@ -6,6 +6,12 @@ LogWindow::LogWindow(QWidget *parent) :
     ui(new Ui::LogWindow)
 {
     ui->setupUi(this);
+
+    setWindowFlags(Qt::Dialog
+                   | Qt::WindowTitleHint
+                   | Qt::WindowMinimizeButtonHint
+                   | Qt::WindowMaximizeButtonHint
+                   | Qt::WindowCloseButtonHint);
 }
 
 LogWindow::~LogWindow()
