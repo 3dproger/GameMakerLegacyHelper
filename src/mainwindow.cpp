@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "gms1corrector.h"
+#include "gms2corrector.h"
 #include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -7,6 +9,11 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    GMS1Corrector::setLogCallback([this](const QString& text)
+    {
+        log->addLine(text);
+    });
 
     GMS2Corrector::setLogCallback([this](const QString& text)
     {
@@ -63,3 +70,11 @@ void MainWindow::on_pushButtonConvertFunctions_clicked()
 {
 
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+    log->clear();
+    GMS1Corrector::convertAnsiToUtf8(ui->lineEditGMKFile->text(), ui->lineEditGMS1Folder->text());
+    log->show();
+}
+

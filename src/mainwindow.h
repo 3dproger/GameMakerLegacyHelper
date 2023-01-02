@@ -1,7 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "gms2corrector.h"
 #include "logwindow.h"
 #include <QMainWindow>
 
@@ -27,6 +26,8 @@ private slots:
     void on_pushButtonConvertFunctions_clicked();
 
     void on_pushButtonFindGMS1Folder_clicked();
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
