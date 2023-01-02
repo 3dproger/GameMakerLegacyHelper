@@ -24,6 +24,8 @@ private slots:
 
     void on_pushButtonBreakToExitConvert_clicked();
 
+    void on_pushButtonConvertFunctions_clicked();
+
 private:
     Ui::MainWindow *ui;
     LogWindow* log = new LogWindow(this);

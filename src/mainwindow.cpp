@@ -71,3 +71,9 @@ void MainWindow::showNotes(const QList<Converter::Note> &notes)
     }
 }
 
+
+void MainWindow::on_pushButtonConvertFunctions_clicked()
+{
+
+}
+
