@@ -2,6 +2,7 @@
 #include <QFileInfo>
 #include <QProcess>
 #include <QDir>
+#include <QCoreApplication>
 
 namespace
 {
@@ -17,10 +18,17 @@ void GMS1Corrector::setLogCallback(std::function<void (const QString &)> callbac
 
 void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString &gms1folder)
 {
+    QFileInfo gmkSplit(QCoreApplication::applicationDirPath() + "/GmkSplitter.v0.18/gmksplit.exe");
+    if (!gmkSplit.exists())
+    {
+        log(QString("File \"%1\" not found").arg(gmkSplit.absoluteFilePath()));
+        return;
+    }
+
     QFileInfo gmk(gmkFileName);
     if (!gmk.exists())
     {
-        log(QString("File \"%1\" not found").arg(gmkFileName));
+        log(QString("GMK file \"%1\" not found").arg(gmkFileName));
         return;
     }
 
