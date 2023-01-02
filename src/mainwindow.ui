@@ -140,9 +140,6 @@
            <property name="text">
             <string>window_set_taskbar_caption -&gt; window_set_caption</string>
            </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
           </widget>
          </item>
          <item>
@@ -150,8 +147,19 @@
            <property name="text">
             <string>'variable_local_exists(' -&gt; 'variable_instance_exists(id, '</string>
            </property>
-           <property name="checked">
-            <bool>true</bool>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxDisplayReset">
+           <property name="text">
+            <string>'display_reset()' -&gt; 'display_reset(0, false)'</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBoxSpriteCreateFromSurface">
+           <property name="text">
+            <string>'sprite_create_from_surface' - remove 6 and 9 argument</string>
            </property>
           </widget>
          </item>
