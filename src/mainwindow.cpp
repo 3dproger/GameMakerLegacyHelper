@@ -58,5 +58,10 @@ void MainWindow::showNotes(const QList<Converter::Note> &notes)
             break;
         }
     }
+
+    if (notes.isEmpty())
+    {
+        QMessageBox::information(this, tr("Note"), tr("Done"));
+    }
 }
 
