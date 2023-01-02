@@ -11,4 +11,8 @@ public:
 
 private:
     static void log(const QString& text);
+
+    static void copyScripts(const QString& gmkSplitOutput, const QString& gms1folder);
+    static void copyObjectCodes(const QString& gmkSplitOutput, const QString& gms1folder);
+    static void copyRoomCodes(const QString& gmkSplitOutput, const QString& gms1folder);
 };

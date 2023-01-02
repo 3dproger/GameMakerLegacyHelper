@@ -124,6 +124,25 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
         return;
     }
 
+    copyScripts(gmkSplitOutput, gms1folder);
+    copyObjectCodes(gmkSplitOutput, gms1folder);
+    copyRoomCodes(gmkSplitOutput, gms1folder);
+
+    log("Done!");
+}
+
+void GMS1Corrector::log(const QString &text)
+{
+    qDebug(text.toUtf8());
+
+    if (logCallback)
+    {
+        logCallback(text);
+    }
+}
+
+void GMS1Corrector::copyScripts(const QString& gmkSplitOutput, const QString& gms1folder)
+{
     QDirIterator it(gmkSplitOutput + "/Scripts", QStringList() << "*.gml", QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
     {
@@ -149,16 +168,14 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
             log(QString("Failed to copy \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()));
         }
     }
-
-    log("Done!");
 }
 
-void GMS1Corrector::log(const QString &text)
+void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString &gms1folder)
 {
-    qDebug(text.toUtf8());
 
-    if (logCallback)
-    {
-        logCallback(text);
-    }
+}
+
+void GMS1Corrector::copyRoomCodes(const QString &gmkSplitOutput, const QString &gms1folder)
+{
+
 }
