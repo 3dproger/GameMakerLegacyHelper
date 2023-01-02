@@ -142,11 +142,11 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
 
         if (QFile::copy(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()))
         {
-            log(QString("Copied \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
+            log(QString("Copied \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()));
         }
         else
         {
-            log(QString("Failed to copy \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
+            log(QString("Failed to copy \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()));
         }
     }
 
