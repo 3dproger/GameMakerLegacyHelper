@@ -1,25 +1,20 @@
 #include "converter.h"
 #include <QDirIterator>
 #include <QFile>
-#include <QDebug>
 #include <QTranslator>
 #include <QDir>
+#include <QTextStream>
 
 namespace
 {
 
-QByteArray readFile(const QString& fileName)
-{
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qWarning() << "Failed to open file" << file.fileName();
-        return QByteArray();
-    }
+static std::function<void(const QString&)> logCallback = nullptr;
 
-    return file.readAll();
 }
 
+void Converter::setLogCallback(std::function<void (const QString &)> callback)
+{
+    logCallback = callback;
 }
 
 QList<Converter::Note> Converter::breakToExit(const QString& gms2folder_)
@@ -57,31 +52,29 @@ QList<Converter::Note> Converter::breakToExit(const QString& gms2folder_)
 
         QByteArray data = readFile(fileName);
 
-        if (!data.contains("break"))
+        if (!isContainsWord(data, "break"))
         {
-            qInfo() << "Ignore file" << fileName << ", not contains 'break'";
+            log(QString("Ignore file \"%1\", not contains 'break'").arg(fileName));
             continue;
         }
 
         if (isContainsWord(data, "for") || isContainsWord(data, "while") || isContainsWord(data, "switch"))
         {
-            qInfo() << "Ignore file" << fileName << ", contains stop-word";
+            log(QString("Ignore file \"%1\", contains stop-word").arg(fileName));
             continue;
         }
-
-        //data.replace("break", "exit");
 
         QFile file(fileName);
         if (!file.open(QFile::WriteOnly | QFile::Truncate))
         {
-            qWarning() << "Failed to open file" << fileName;
+            log(QString("Failed to open file \"%1\"").arg(fileName));
             continue;
         }
 
         QTextStream out(&file);
         out << data;
 
-        qInfo() << "Converted file" << fileName;
+        log(QString("Converted file \"%1\"").arg(fileName));
     }
 
     return QList<Converter::Note>();
@@ -112,4 +105,29 @@ bool Converter::isContainsWord(const QByteArray &text, const QByteArray &word)
     }
 
     return false;
+}
+
+void Converter::log(const QString &text)
+{
+    if (logCallback)
+    {
+        logCallback(text);
+    }
+    else
+    {
+        wprintf(text.toStdWString().c_str());
+        wprintf(L"\n");
+    }
+}
+
+QByteArray Converter::readFile(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        log(QString("Failed to open file \"%1\"").arg(file.fileName()));
+        return QByteArray();
+    }
+
+    return file.readAll();
 }

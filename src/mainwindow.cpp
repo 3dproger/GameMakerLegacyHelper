@@ -15,7 +15,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
 void MainWindow::on_pushButtonFindGMKFile_clicked()
 {
     const QString fileName = QFileDialog::getOpenFileName(this, tr("GMK file"), QString(), "*.gmk");
