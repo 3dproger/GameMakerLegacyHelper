@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QStandardPaths>
+#include <QDirIterator>
 #include <QDebug>
 #include <thread>
 
@@ -123,30 +124,29 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
         return;
     }
 
-    for(const QFileInfo& sourceFile : QDir(gmkSplitOutput + "/Scripts").entryInfoList(QDir::Files))
+    QDirIterator it(gmkSplitOutput + "/Scripts", QStringList() << "*.gml", QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
     {
-        if (sourceFile.suffix().toUpper() == "GML")
+        const QFileInfo sourceFile(it.next());
+        QFileInfo destFile(gms1folder + "/scripts/" + sourceFile.fileName());
+        if (!destFile.exists())
         {
-            QFileInfo destFile(gms1folder + "/scripts/" + sourceFile.fileName());
-            if (!destFile.exists())
-            {
-                log(QString("Destination file \"%1\" not found").arg(destFile.absoluteFilePath()));
-                continue;
-            }
+            log(QString("Destination file \"%1\" not found").arg(destFile.absoluteFilePath()));
+            continue;
+        }
 
-            if (destFile.exists() && !QFile::remove(destFile.absoluteFilePath()))
-            {
-                log(QString("Failed to remove file \"%1\"").arg(destFile.absoluteFilePath()));
-            }
+        if (destFile.exists() && !QFile::remove(destFile.absoluteFilePath()))
+        {
+            log(QString("Failed to remove file \"%1\"").arg(destFile.absoluteFilePath()));
+        }
 
-            if (QFile::copy(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()))
-            {
-                log(QString("Copied \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
-            }
-            else
-            {
-                log(QString("Failed to copy \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
-            }
+        if (QFile::copy(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()))
+        {
+            log(QString("Copied \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
+        }
+        else
+        {
+            log(QString("Failed to copy \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
         }
     }
 
