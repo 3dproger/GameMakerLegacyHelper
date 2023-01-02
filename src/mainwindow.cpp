@@ -31,6 +31,17 @@ void MainWindow::on_pushButtonFindGMKFile_clicked()
     ui->lineEditGMKFile->setText(fileName);
 }
 
+void MainWindow::on_pushButtonFindGMS1Folder_clicked()
+{
+    const QString dirName = QFileDialog::getExistingDirectory(this, tr("GMS1 Project directory"), QString());
+    if (dirName.isEmpty())
+    {
+        return;
+    }
+
+    ui->lineEditGMS1Folder->setText(dirName);
+}
+
 void MainWindow::on_pushButtonFindGMS2Folder_clicked()
 {
     const QString dirName = QFileDialog::getExistingDirectory(this, tr("GMS2 Project directory"), QString());
@@ -76,4 +87,3 @@ void MainWindow::on_pushButtonConvertFunctions_clicked()
 {
 
 }
-

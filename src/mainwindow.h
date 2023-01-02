@@ -26,6 +26,8 @@ private slots:
 
     void on_pushButtonConvertFunctions_clicked();
 
+    void on_pushButtonFindGMS1Folder_clicked();
+
 private:
     Ui::MainWindow *ui;
     LogWindow* log = new LogWindow(this);
