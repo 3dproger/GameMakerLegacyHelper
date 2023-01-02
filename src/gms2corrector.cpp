@@ -16,20 +16,19 @@ void GMS2Corrector::setLogCallback(std::function<void (const QString &)> callbac
     logCallback = callback;
 }
 
-void GMS2Corrector::breakToExit(const QString& gms2folder_)
+void GMS2Corrector::breakToExit(const QString& gms2folder)
 {
-    const QString gms2folder = gms2folder_.trimmed();
-    if (gms2folder.isEmpty())
-    {
-        log("GMS2 Folder project is empty");
-        return;
-    }
-
     static const QString FileProjectSuffix = "YYP";
 
     bool foundProjectFile = false;
 
     QDir root(gms2folder);
+    if (!root.exists())
+    {
+        log(QString("Folder \"%1\" not exists!").arg(gms2folder));
+        return;
+    }
+
     const QFileInfoList rootFiles = root.entryInfoList(QDir::Filter::Files);
     for (const QFileInfo& fileInfo : rootFiles)
     {

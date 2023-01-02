@@ -1,4 +1,7 @@
 #include "gms1corrector.h"
+#include <QFileInfo>
+#include <QProcess>
+#include <QDir>
 
 namespace
 {
@@ -14,6 +17,40 @@ void GMS1Corrector::setLogCallback(std::function<void (const QString &)> callbac
 
 void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString &gms1folder)
 {
+    QFileInfo gmk(gmkFileName);
+    if (!gmk.exists())
+    {
+        log(QString("File \"%1\" not found").arg(gmkFileName));
+        return;
+    }
+
+    QDir root(gms1folder);
+    if (!root.exists())
+    {
+        log(QString("Folder \"%1\" not exists!").arg(gms1folder));
+        return;
+    }
+
+    static const QString FileProjectSuffix = "GMX";
+
+    bool foundProjectFile = false;
+
+    const QFileInfoList rootFiles = root.entryInfoList(QDir::Filter::Files);
+    for (const QFileInfo& fileInfo : rootFiles)
+    {
+        if (fileInfo.suffix().toUpper() == FileProjectSuffix)
+        {
+            foundProjectFile = true;
+            break;
+        }
+    }
+
+    if (!foundProjectFile)
+    {
+        log(QString("GMS1 Folder project does not contain a project file %1").arg(FileProjectSuffix));
+        return;
+    }
+
     log("Done!");
 }
 
