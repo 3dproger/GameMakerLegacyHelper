@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "converter.h"
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
@@ -20,7 +21,11 @@ private slots:
 
     void on_pushButtonFindGMS2Folder_clicked();
 
+    void on_pushButtonBreakToExitConvert_clicked();
+
 private:
     Ui::MainWindow *ui;
+
+    void showNotes(const QList<Converter::Note>& notes);
 };
 #endif // MAINWINDOW_H

@@ -2,6 +2,8 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QDebug>
+#include <QTranslator>
+#include <QDir>
 
 namespace
 {
@@ -20,8 +22,34 @@ QByteArray readFile(const QString& fileName)
 
 }
 
-void Converter::convert(const QString& gms2folder)
+QList<Converter::Note> Converter::breakToExit(const QString& gms2folder_)
 {
+    const QString gms2folder = gms2folder_.trimmed();
+    if (gms2folder.isEmpty())
+    {
+        return QList<Converter::Note>({ Note(Note::Error, QTranslator::tr("GMS2 Folder project is empty")) });
+    }
+
+    static const QString FileProjectSuffix = "YYP";
+
+    bool foundProjectFile = false;
+
+    QDir root(gms2folder);
+    const QFileInfoList rootFiles = root.entryInfoList(QDir::Filter::Files);
+    for (const QFileInfo& fileInfo : rootFiles)
+    {
+        if (fileInfo.completeSuffix().toUpper() == FileProjectSuffix)
+        {
+            foundProjectFile = true;
+            break;
+        }
+    }
+
+    if (!foundProjectFile)
+    {
+        return QList<Converter::Note>({ Note(Note::Error, QTranslator::tr("GMS2 Folder project does not contain a project file %1").arg(FileProjectSuffix)) });
+    }
+
     QDirIterator it(gms2folder, QStringList() << "*.gml", QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
     {
@@ -55,6 +83,8 @@ void Converter::convert(const QString& gms2folder)
 
         qInfo() << "Converted file" << fileName;
     }
+
+    return QList<Converter::Note>();
 }
 
 bool Converter::isContainsWord(const QByteArray &text, const QByteArray &word)
