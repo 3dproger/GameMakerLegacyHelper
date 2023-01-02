@@ -15,6 +15,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_pushButtonFindGMKFile_clicked();
+
+    void on_pushButtonFindGMS2Folder_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
