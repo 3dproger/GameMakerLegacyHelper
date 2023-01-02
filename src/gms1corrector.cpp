@@ -123,6 +123,33 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
         return;
     }
 
+    for(const QFileInfo& sourceFile : QDir(gmkSplitOutput + "/Scripts").entryInfoList(QDir::Files))
+    {
+        if (sourceFile.suffix().toUpper() == "GML")
+        {
+            QFileInfo destFile(gms1folder + "/scripts/" + sourceFile.fileName());
+            if (!destFile.exists())
+            {
+                log(QString("Destination file \"%1\" not found").arg(destFile.absoluteFilePath()));
+                continue;
+            }
+
+            if (destFile.exists() && !QFile::remove(destFile.absoluteFilePath()))
+            {
+                log(QString("Failed to remove file \"%1\"").arg(destFile.absoluteFilePath()));
+            }
+
+            if (QFile::copy(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()))
+            {
+                log(QString("Copied \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
+            }
+            else
+            {
+                log(QString("Failed to copy \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath()).arg(destFile.absoluteFilePath()));
+            }
+        }
+    }
+
     log("Done!");
 }
 
