@@ -251,27 +251,15 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                 continue;
             }
 
-            const QDomNodeList objectNodes = dom.elementsByTagName("object");
-            if (objectNodes.isEmpty())
-            {
-                log(QString("No 'object' tag in destination file \"%1\"").arg(destFileName));
-                continue;
-            }
+            const QDomNodeList events = dom.namedItem("object").namedItem("events").childNodes();
 
-            const QDomNodeList eventsNodes = objectNodes.at(0).toElement().elementsByTagName("events");
-            if (eventsNodes.isEmpty())
+            for (int i = 0; i < events.count(); ++i)
             {
-                log(QString("No 'events' tag in destination file \"%1\"").arg(destFileName));
-                continue;
-            }
+                const QDomNode event = events.at(i);
 
-            const QDomNodeList eventNodes = eventsNodes.at(0).toElement().elementsByTagName("event");
-            for (int i = 0; i < eventNodes.count(); ++i)
-            {
-                const QDomElement event = eventNodes.at(i).toElement();
-                const QString destEventType = event.attribute("eventtype");
-                const QString destEventId = event.attribute("enumb");
-                const QString destEventWith = event.attribute("ename");
+                const QString destEventType = event.attributes().namedItem("eventtype").nodeValue();
+                const QString destEventId = event.attributes().namedItem("enumb").nodeValue();
+                const QString destEventWith = event.attributes().namedItem("ename").nodeValue();
 
                 if (gms1EventTypeToGmk(destEventType).isEmpty())
                 {
@@ -286,17 +274,16 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 
                 int sourceCodeIndex = 0;
                 int destCodes = 0;
-                const QDomNodeList actionNodes = event.elementsByTagName("action");
+                const QDomNodeList actionNodes = event.childNodes();
                 for (int i = 0; i < actionNodes.count(); ++i)
                 {
-                    const QDomElement action = actionNodes.at(i).toElement();
-                    const QDomNodeList kindNodes = action.elementsByTagName("kind");
-                    if (kindNodes.isEmpty())
+                    const QDomNode action = actionNodes.at(i);
+                    if (action.nodeName() != "action")
                     {
                         continue;
                     }
 
-                    if (kindNodes.at(0).toElement().text() == "7")
+                    if (action.namedItem("kind").firstChild().nodeValue() == "7")
                     {
                         destCodes++;
                     }
@@ -305,26 +292,7 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                         continue;
                     }
 
-                    const QDomNodeList argumentsNodes = action.elementsByTagName("arguments");
-                    if (argumentsNodes.isEmpty())
-                    {
-                        log(QString("'arguments' not found in destination object \"%1\"").arg(objectName));
-                        continue;
-                    }
-
-                    const QDomNodeList argumentNodes = argumentsNodes.at(0).toElement().elementsByTagName("argument");
-                    if (argumentNodes.isEmpty())
-                    {
-                        log(QString("'argument' not found in destination object \"%1\"").arg(objectName));
-                        continue;
-                    }
-
-                    const QDomNodeList stringNodes = argumentNodes.at(0).toElement().elementsByTagName("string");
-                    if (argumentNodes.isEmpty())
-                    {
-                        log(QString("'string' not found in destination object \"%1\"").arg(objectName));
-                        continue;
-                    }
+                    QDomNode codeNode = action.namedItem("arguments").namedItem("argument").namedItem("string").firstChild();
 
                     if (sourceCodeIndex >= sourceCodes.count())
                     {
@@ -332,9 +300,7 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                         continue;
                     }
 
-                    stringNodes.at(0).setNodeValue(sourceCodes.at(sourceCodeIndex));
-
-                    //qDebug() << stringNodes.at(0).nodeValue();
+                    codeNode.setNodeValue(sourceCodes.at(sourceCodeIndex));
 
                     needSaveFile = true;
 
@@ -352,9 +318,11 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             {
                 destFileRead.close();
 
-                QString result;
+                qDebug(dom.toByteArray());
+
+                /*QString result;
                 domToStringCorrected(result, dom);
-                qDebug(result.toUtf8());
+                qDebug(result.toUtf8());*/
 
                 /*QFile destFileWrite(destFileName);
                 if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
