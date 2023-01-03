@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QDomDocument>
 #include <functional>
 
 class GMS1Corrector
@@ -17,4 +18,6 @@ private:
     static void copyRoomCodes(const QString& gmkSplitOutput, const QString& gms1folder);
 
     static QString gms1EventTypeToGmk(const QString& type);
+
+    static void domToStringCorrected(QString& result, const QDomNode& node, int intend = 0);
 };

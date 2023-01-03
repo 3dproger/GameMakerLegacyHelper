@@ -332,7 +332,9 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                         continue;
                     }
 
-                    stringNodes.at(0).toElement().setNodeValue(sourceCodes.at(sourceCodeIndex));
+                    stringNodes.at(0).setNodeValue(sourceCodes.at(sourceCodeIndex));
+
+                    //qDebug() << stringNodes.at(0).nodeValue();
 
                     needSaveFile = true;
 
@@ -350,7 +352,11 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             {
                 destFileRead.close();
 
-                QFile destFileWrite(destFileName);
+                QString result;
+                domToStringCorrected(result, dom);
+                qDebug(result.toUtf8());
+
+                /*QFile destFileWrite(destFileName);
                 if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
                 {
                     log(QString("Failed to open file \"%1\"").arg(destFileName));
@@ -361,7 +367,7 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                                     .replace("&#xd;", "") // TODO: A crutch that fixes the appearance of a large number of such substrings out of nowhere
                                     );
 
-                log(QString("Updated event code %1 in object \"%2\"").arg(sourceEventType, objectName));
+                log(QString("Updated event code %1 in object \"%2\"").arg(sourceEventType, objectName));*/
             }
         }
     }
@@ -430,4 +436,64 @@ QString GMS1Corrector::gms1EventTypeToGmk(const QString& type)
     }
 
     return QString();
+}
+
+void GMS1Corrector::domToStringCorrected(QString& result, const QDomNode& node, int intend)
+{
+    if (node.isComment())
+    {
+        return;
+    }
+
+    if (!node.nodeName().startsWith("#"))
+    {
+        if (result.endsWith(">"))
+        {
+            result += "\n";
+
+            for (int i = 0; i < intend; ++i)
+            {
+                result += "  ";
+            }
+        }
+
+        result += "<" + node.nodeName();
+
+        const QDomNamedNodeMap attributes = node.attributes();
+        for (int i = 0; i < attributes.count(); ++i)
+        {
+            const QDomNode attribute = attributes.item(i);
+
+            result += " " + attribute.nodeName() + "=\"" + attribute.nodeValue() + "\"";
+        }
+
+        result += ">";
+    }
+
+    if (!node.nodeValue().isEmpty())
+    {
+        result += node.nodeValue();
+    }
+
+    const QDomNodeList children = node.childNodes();
+    for (int i = 0; i < children.count(); ++i)
+    {
+        const QDomNode child = children.at(i);
+        if (child.isText() )//&& !node.nodeValue().isEmpty())
+        {
+            continue;
+        }
+
+        domToStringCorrected(result, child, intend + 1);
+    }
+
+    if (!node.nodeName().startsWith("#"))
+    {
+        result += "</" + node.nodeName() + ">\n";
+
+        for (int i = 0; i < intend; ++i)
+        {
+            result += "  ";
+        }
+    }
 }
