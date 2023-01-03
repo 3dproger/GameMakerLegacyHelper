@@ -357,7 +357,9 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                     continue;
                 }
 
-                destFileWrite.write(dom.toString(0).toUtf8());
+                destFileWrite.write(dom.toString().toUtf8()
+                                    .replace("&#xd;", "") // TODO: A crutch that fixes the appearance of a large number of such substrings out of nowhere
+                                    );
 
                 log(QString("Updated event code %1 in object \"%2\"").arg(sourceEventType, objectName));
             }

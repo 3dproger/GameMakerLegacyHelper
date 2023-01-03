@@ -55,7 +55,7 @@
              </font>
             </property>
             <property name="text">
-             <string>First, import gmc into gmc1. Then perform the project corrections on gms1 through this program. Then import the project from gms1 to gms2 and fix the gms2 project. For convenience, use Git to track changes in the GMS2 project</string>
+             <string>First, import GMK into GMS1. Then perform the project corrections on gms1 through this program. Then import the project from GMS1 to GMS2 and fix the GMS2 project. For convenience, use Git to track changes in the GMS1/2 projects</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
