@@ -6,6 +6,7 @@
 #include <QStandardPaths>
 #include <QDirIterator>
 #include <QDebug>
+#include <QXmlStreamReader>
 #include <thread>
 
 namespace
@@ -172,7 +173,47 @@ void GMS1Corrector::copyScripts(const QString& gmkSplitOutput, const QString& gm
 
 void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString &gms1folder)
 {
+    QDirIterator objectsDirIt(gmkSplitOutput + "/Objects", QStringList() << "*.events", QDir::Filter::Dirs, QDirIterator::Subdirectories);
+    while (objectsDirIt.hasNext())
+    {
+        const QDir objectDir(objectsDirIt.next());
+        const QString objectName = objectDir.dirName().left(objectDir.dirName().length() - 7);
 
+        const QFileInfoList eventsFiles = objectDir.entryInfoList(QDir::Filter::Files);
+        for (const QFileInfo& eventFile : eventsFiles)
+        {
+            QFile file(eventFile.absoluteFilePath());
+            if (!file.open(QIODevice::OpenModeFlag::ReadOnly | QIODevice::OpenModeFlag::Text))
+            {
+                log(QString("Failed to open file \"%1\"").arg(eventFile.absoluteFilePath()));
+                continue;
+            }
+
+            QString eventType;
+            QString code;
+
+            QXmlStreamReader xml(&file);
+            while (!xml.atEnd())
+            {
+                if (eventType.isEmpty() && xml.name() == "event")
+                {
+                    eventType = xml.attributes().value("category").toString();
+                }
+
+                if (code.isEmpty() && xml.name() == "argument" && xml.attributes().value("kind") == "STRING")
+                {
+                    code = xml.readElementText();
+                }
+
+                if (!eventType.isEmpty() && !code.isEmpty())
+                {
+                    break;
+                }
+
+                xml.readNext();
+            }
+        }
+    }
 }
 
 void GMS1Corrector::copyRoomCodes(const QString &gmkSplitOutput, const QString &gms1folder)
