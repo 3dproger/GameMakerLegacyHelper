@@ -7,6 +7,7 @@
 #include <QDirIterator>
 #include <QDebug>
 #include <QXmlStreamReader>
+#include <QDomDocument>
 #include <thread>
 
 namespace
@@ -182,32 +183,39 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
         const QFileInfoList eventsFiles = objectDir.entryInfoList(QDir::Filter::Files);
         for (const QFileInfo& eventFile : eventsFiles)
         {
-            QFile file(eventFile.absoluteFilePath());
-            if (!file.open(QIODevice::OpenModeFlag::ReadOnly | QIODevice::OpenModeFlag::Text))
+            QFile sourceFile(eventFile.absoluteFilePath());
+            if (!sourceFile.open(QIODevice::OpenModeFlag::ReadOnly | QIODevice::OpenModeFlag::Text))
             {
                 log(QString("Failed to open file \"%1\"").arg(eventFile.absoluteFilePath()));
                 continue;
             }
 
-            QString eventType;
-            QString eventId;
-            QString eventWith;
+            QString sourceEventType;
+            QString sourceEventId;
+            QString sourceEventWith;
 
             QStringList codes;
 
-            QXmlStreamReader xml(&file);
+            bool isCode = false;
+
+            QXmlStreamReader xml(&sourceFile);
             while (!xml.atEnd())
             {
                 const QXmlStreamAttributes& attributes = xml.attributes();
 
-                if (eventType.isEmpty() && xml.name() == "event")
+                if (sourceEventType.isEmpty() && xml.name() == "event")
                 {
-                    eventType = attributes.value("category").toString();
-                    eventId = attributes.value("id").toString();
-                    eventWith = attributes.value("with").toString();
+                    sourceEventType = attributes.value("category").toString();
+                    sourceEventId = attributes.value("id").toString();
+                    sourceEventWith = attributes.value("with").toString();
                 }
 
-                if (xml.name() == "argument" && attributes.value("kind") == "STRING")
+                if (xml.name() == "kind")
+                {
+                    isCode = xml.readElementText() == "CODE";
+                }
+
+                if (isCode && xml.name() == "argument" && attributes.value("kind") == "STRING")
                 {
                     codes.append(xml.readElementText());
                 }
@@ -215,7 +223,65 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                 xml.readNext();
             }
 
-            qDebug() << eventType << eventId << eventWith;
+            if (codes.isEmpty())
+            {
+                continue;
+            }
+
+            const QString destFileName = gms1folder + "/objects/" + objectName + ".object.gmx";
+            QFile destFile(destFileName);
+            if (!destFile.exists())
+            {
+                log(QString("File \"%1\" not found").arg(destFileName));
+                continue;
+            }
+
+            if (!destFile.open(QIODevice::ReadWrite | QIODevice::Text))
+            {
+                log(QString("Failed to open file \"%1\"").arg(destFileName));
+                continue;
+            }
+
+            QDomDocument dom;
+            if (!dom.setContent(&destFile))
+            {
+                log(QString("Failed to load DOM content from \"%1\"").arg(destFileName));
+                continue;
+            }
+
+            const QDomNodeList objectNodes = dom.elementsByTagName("object");
+            if (objectNodes.isEmpty())
+            {
+                log(QString("No 'object' tag in destination file \"%1\"").arg(destFileName));
+                continue;
+            }
+
+            const QDomNodeList eventsNodes = objectNodes.at(0).toElement().elementsByTagName("events");
+            if (eventsNodes.isEmpty())
+            {
+                log(QString("No 'events' tag in destination file \"%1\"").arg(destFileName));
+                continue;
+            }
+
+            const QDomNodeList eventNodes = eventsNodes.at(0).toElement().elementsByTagName("event");
+            for (int i = 0; i < eventNodes.count(); ++i)
+            {
+                QDomElement event = eventNodes.at(i).toElement();
+                const QString destEventType = event.attribute("eventtype");
+                const QString destEventId = event.attribute("enumb");
+                const QString destEventWith = event.attribute("ename");
+
+                if (gms1EventTypeToGmk(destEventType).isEmpty())
+                {
+                    log(QString("Unknown event type \"%1\" in object \"%2\"").arg(destEventType).arg(objectName));
+                    continue;
+                }
+
+                if (gms1EventTypeToGmk(destEventType) == sourceEventType && destEventId == sourceEventId && destEventWith == sourceEventWith)
+                {
+                    qDebug() << objectName << sourceEventType << sourceEventId << sourceEventWith;
+                }
+            }
         }
     }
 }
@@ -223,4 +289,64 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 void GMS1Corrector::copyRoomCodes(const QString &gmkSplitOutput, const QString &gms1folder)
 {
 
+}
+
+QString GMS1Corrector::gms1EventTypeToGmk(const QString& type)
+{
+    if (type == "0")
+    {
+        return "CREATE";
+    }
+
+    if (type == "1")
+    {
+        return "DESTROY";
+    }
+
+    if (type == "2")
+    {
+        return "ALARM";
+    }
+
+    if (type == "3")
+    {
+        return "STEP";
+    }
+
+    if (type == "4")
+    {
+        return "COLLISION";
+    }
+
+    if (type == "5")
+    {
+        return "KEYBOARD";
+    }
+
+    if (type == "6")
+    {
+        //TODO:
+    }
+
+    if (type == "7")
+    {
+        return "OTHER";
+    }
+
+    if (type == "8")
+    {
+        return "DRAW";
+    }
+
+    if (type == "9")
+    {
+        return "KEYPRESS";
+    }
+
+    if (type == "10")
+    {
+        return "KEYRELEASE";
+    }
+
+    return QString();
 }
