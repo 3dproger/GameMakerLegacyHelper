@@ -190,33 +190,32 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             }
 
             QString eventType;
-            QString code;
+            QString eventId;
+            QString eventWith;
+
+            QStringList codes;
 
             QXmlStreamReader xml(&file);
             while (!xml.atEnd())
             {
+                const QXmlStreamAttributes& attributes = xml.attributes();
+
                 if (eventType.isEmpty() && xml.name() == "event")
                 {
-                    eventType = xml.attributes().value("category").toString();
+                    eventType = attributes.value("category").toString();
+                    eventId = attributes.value("id").toString();
+                    eventWith = attributes.value("with").toString();
                 }
 
-                if (code.isEmpty() && xml.name() == "argument" && xml.attributes().value("kind") == "STRING")
+                if (xml.name() == "argument" && attributes.value("kind") == "STRING")
                 {
-                    //TODO: there may be several blocks of code
-                    //TODO: in addition to code blocks, there may be other blocks
-
-                    code = xml.readElementText();
-                }
-
-                if (!eventType.isEmpty() && !code.isEmpty())
-                {
-                    break;
+                    codes.append(xml.readElementText());
                 }
 
                 xml.readNext();
             }
 
-
+            qDebug() << eventType << eventId << eventWith;
         }
     }
 }
