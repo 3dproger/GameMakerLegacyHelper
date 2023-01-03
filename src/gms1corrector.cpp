@@ -194,7 +194,7 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             QString sourceEventId;
             QString sourceEventWith;
 
-            QStringList codes;
+            QStringList sourceCodes;
 
             bool isCode = false;
 
@@ -217,13 +217,13 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 
                 if (isCode && xml.name() == "argument" && attributes.value("kind") == "STRING")
                 {
-                    codes.append(xml.readElementText());
+                    sourceCodes.append(xml.readElementText());
                 }
 
                 xml.readNext();
             }
 
-            if (codes.isEmpty())
+            if (sourceCodes.isEmpty())
             {
                 continue;
             }
@@ -266,7 +266,7 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             const QDomNodeList eventNodes = eventsNodes.at(0).toElement().elementsByTagName("event");
             for (int i = 0; i < eventNodes.count(); ++i)
             {
-                QDomElement event = eventNodes.at(i).toElement();
+                const QDomElement event = eventNodes.at(i).toElement();
                 const QString destEventType = event.attribute("eventtype");
                 const QString destEventId = event.attribute("enumb");
                 const QString destEventWith = event.attribute("ename");
@@ -277,10 +277,74 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                     continue;
                 }
 
-                if (gms1EventTypeToGmk(destEventType) == sourceEventType && destEventId == sourceEventId && destEventWith == sourceEventWith)
+                if (gms1EventTypeToGmk(destEventType) != sourceEventType || destEventId != sourceEventId || destEventWith != sourceEventWith)
                 {
-                    qDebug() << objectName << sourceEventType << sourceEventId << sourceEventWith;
+                    continue;
                 }
+
+                int sourceCodeIndex = 0;
+                int destCodes = 0;
+                const QDomNodeList actionNodes = event.elementsByTagName("action");
+                for (int i = 0; i < actionNodes.count(); ++i)
+                {
+                    const QDomElement action = actionNodes.at(i).toElement();
+                    const QDomNodeList kindNodes = action.elementsByTagName("kind");
+                    if (kindNodes.isEmpty())
+                    {
+                        continue;
+                    }
+
+                    if (kindNodes.at(0).toElement().text() == "7")
+                    {
+                        destCodes++;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+
+                    const QDomNodeList argumentsNodes = action.elementsByTagName("arguments");
+                    if (argumentsNodes.isEmpty())
+                    {
+                        log(QString("'arguments' not found in destination object \"%1\"").arg(objectName));
+                        continue;
+                    }
+
+                    const QDomNodeList argumentNodes = argumentsNodes.at(0).toElement().elementsByTagName("argument");
+                    if (argumentNodes.isEmpty())
+                    {
+                        log(QString("'argument' not found in destination object \"%1\"").arg(objectName));
+                        continue;
+                    }
+
+                    const QDomNodeList stringNodes = argumentNodes.at(0).toElement().elementsByTagName("string");
+                    if (argumentNodes.isEmpty())
+                    {
+                        log(QString("'string' not found in destination object \"%1\"").arg(objectName));
+                        continue;
+                    }
+
+                    if (sourceCodeIndex >= sourceCodes.count())
+                    {
+                        log(QString("Fewer source codes than destination codes in object \"%1\"").arg(objectName));
+                        continue;
+                    }
+
+                    stringNodes.at(0).toElement().setNodeValue(sourceCodes.at(sourceCodeIndex));
+
+                    log(QString("Updated event code %1 (%2) in object \"%3\"")
+                        .arg(sourceEventType, destEventType, objectName));
+
+                    sourceCodeIndex++;
+                }
+
+                if (destCodes != sourceCodes.count())
+                {
+                    log(QString("The number of source codes (%1) does not match the number of destination codes (%2) in object \"%3\", event: %4 (%5)")
+                        .arg(sourceCodes.count()).arg(destCodes).arg(objectName, sourceEventType, destEventType));
+                }
+
+                //qDebug() << objectName << sourceEventType << sourceEventId << sourceEventWith;
             }
         }
     }
