@@ -202,6 +202,9 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 
                 if (code.isEmpty() && xml.name() == "argument" && xml.attributes().value("kind") == "STRING")
                 {
+                    //TODO: there may be several blocks of code
+                    //TODO: in addition to code blocks, there may be other blocks
+
                     code = xml.readElementText();
                 }
 
@@ -212,6 +215,8 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 
                 xml.readNext();
             }
+
+
         }
     }
 }
