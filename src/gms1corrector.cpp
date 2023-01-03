@@ -228,22 +228,24 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                 continue;
             }
 
+            bool needSaveFile = false;
+
             const QString destFileName = gms1folder + "/objects/" + objectName + ".object.gmx";
-            QFile destFile(destFileName);
-            if (!destFile.exists())
+            QFile destFileRead(destFileName);
+            if (!destFileRead.exists())
             {
                 log(QString("File \"%1\" not found").arg(destFileName));
                 continue;
             }
 
-            if (!destFile.open(QIODevice::ReadWrite | QIODevice::Text))
+            if (!destFileRead.open(QIODevice::ReadOnly | QIODevice::Text))
             {
                 log(QString("Failed to open file \"%1\"").arg(destFileName));
                 continue;
             }
 
             QDomDocument dom;
-            if (!dom.setContent(&destFile))
+            if (!dom.setContent(&destFileRead))
             {
                 log(QString("Failed to load DOM content from \"%1\"").arg(destFileName));
                 continue;
@@ -332,8 +334,7 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 
                     stringNodes.at(0).toElement().setNodeValue(sourceCodes.at(sourceCodeIndex));
 
-                    log(QString("Updated event code %1 (%2) in object \"%3\"")
-                        .arg(sourceEventType, destEventType, objectName));
+                    needSaveFile = true;
 
                     sourceCodeIndex++;
                 }
@@ -343,8 +344,22 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                     log(QString("The number of source codes (%1) does not match the number of destination codes (%2) in object \"%3\", event: %4 (%5)")
                         .arg(sourceCodes.count()).arg(destCodes).arg(objectName, sourceEventType, destEventType));
                 }
+            }
 
-                //qDebug() << objectName << sourceEventType << sourceEventId << sourceEventWith;
+            if (needSaveFile)
+            {
+                destFileRead.close();
+
+                QFile destFileWrite(destFileName);
+                if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+                {
+                    log(QString("Failed to open file \"%1\"").arg(destFileName));
+                    continue;
+                }
+
+                destFileWrite.write(dom.toString(0).toUtf8());
+
+                log(QString("Updated event code %1 in object \"%2\"").arg(sourceEventType, objectName));
             }
         }
     }
