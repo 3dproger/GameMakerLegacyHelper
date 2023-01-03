@@ -212,12 +212,12 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
 
                 if (xml.name() == "kind")
                 {
-                    isCode = xml.readElementText() == "CODE";
+                    isCode = xml.readElementText(QXmlStreamReader::ReadElementTextBehaviour::IncludeChildElements) == "CODE";
                 }
 
                 if (isCode && xml.name() == "argument" && attributes.value("kind") == "STRING")
                 {
-                    sourceCodes.append(xml.readElementText());
+                    sourceCodes.append(xml.readElementText(QXmlStreamReader::ReadElementTextBehaviour::IncludeChildElements));
                 }
 
                 xml.readNext();
