@@ -34,7 +34,7 @@ void GMS2Corrector::breakToExit(const QString& gms2folder)
             continue;
         }
 
-        if (isContainsWord(data, "for") || isContainsWord(data, "while") || isContainsWord(data, "switch"))
+        if (isContainsWord(data, "for") || isContainsWord(data, "while") || isContainsWord(data, "repeat")  || isContainsWord(data, "do") || isContainsWord(data, "switch") || isContainsWord(data, "with"))
         {
             log(QString("Ignore file \"%1\", contains stop-word").arg(fileName));
             continue;
