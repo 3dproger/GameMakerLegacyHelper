@@ -6,7 +6,6 @@
 #include <QStandardPaths>
 #include <QDirIterator>
 #include <QDebug>
-#include <QXmlStreamReader>
 #include <QDomDocument>
 #include <thread>
 
@@ -180,6 +179,8 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
         const QDir objectDir(objectsDirIt.next());
         const QString objectName = objectDir.dirName().left(objectDir.dirName().length() - 7);
 
+        QList<SourceEvent> events;
+
         const QFileInfoList eventsFiles = objectDir.entryInfoList(QDir::Filter::Files);
         for (const QFileInfo& eventFile : eventsFiles)
         {
@@ -190,45 +191,34 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                 continue;
             }
 
-            QString sourceEventType;
-            QString sourceEventId;
-            QString sourceEventWith;
-
-            QStringList sourceCodes;
-
-            bool isCode = false;
-
-            QXmlStreamReader xml(&sourceFile);
-            while (!xml.atEnd())
+            QDomDocument sourceDom;
+            if (!sourceDom.setContent(&sourceFile))
             {
-                const QXmlStreamAttributes& attributes = xml.attributes();
-
-                if (sourceEventType.isEmpty() && xml.name() == "event")
-                {
-                    sourceEventType = attributes.value("category").toString();
-                    sourceEventId = attributes.value("id").toString();
-                    sourceEventWith = attributes.value("with").toString();
-                }
-
-                if (xml.name() == "kind")
-                {
-                    isCode = xml.readElementText(QXmlStreamReader::ReadElementTextBehaviour::IncludeChildElements) == "CODE";
-                }
-
-                if (isCode && xml.name() == "argument" && attributes.value("kind") == "STRING")
-                {
-                    sourceCodes.append(xml.readElementText(QXmlStreamReader::ReadElementTextBehaviour::IncludeChildElements));
-                }
-
-                xml.readNext();
-            }
-
-            if (sourceCodes.isEmpty())
-            {
+                log(QString("Failed to load DOM content from \"%1\"").arg(sourceFile.fileName()));
                 continue;
             }
 
-            bool needSaveFile = false;
+            const QDomNode event = sourceDom.namedItem("event");
+
+            SourceEvent sourceEvent(event.attributes().namedItem("category").nodeValue(),
+                                    event.attributes().namedItem("id").nodeValue(),
+                                    event.attributes().namedItem("with").nodeValue());
+
+            const QDomNodeList actions = event.namedItem("actions").childNodes();
+            for (int i = 0; i < actions.count(); ++i)
+            {
+                const QDomNode action = actions.at(i);
+                if (action.namedItem("kind").firstChild().nodeValue() != "CODE")
+                {
+                    continue;
+                }
+
+                sourceEvent.codes.append(action.namedItem("arguments").childNodes().at(0).firstChild().nodeValue());
+            }
+
+            events.append(sourceEvent);
+
+            /*bool needSaveFile = false;
 
             const QString destFileName = gms1folder + "/objects/" + objectName + ".object.gmx";
             QFile destFileRead(destFileName);
@@ -243,6 +233,9 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                 log(QString("Failed to open file \"%1\"").arg(destFileName));
                 continue;
             }
+
+            qDebug() << eventFile.absoluteFilePath();
+            qDebug() << destFileName;
 
             QDomDocument dom;
             if (!dom.setContent(&destFileRead))
@@ -319,25 +312,133 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
                 destFileRead.close();
 
                 qDebug(dom.toByteArray());
+            }*/
+        }
 
-                /*QString result;
-                domToStringCorrected(result, dom);
-                qDebug(result.toUtf8());*/
+        copyObjectCode(objectName, gms1folder, events);
+    }
+}
 
-                /*QFile destFileWrite(destFileName);
-                if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
-                {
-                    log(QString("Failed to open file \"%1\"").arg(destFileName));
-                    continue;
-                }
+void GMS1Corrector::copyObjectCode(const QString &objectName, const QString& gms1folder, const QList<SourceEvent> &sourceEvents)
+{
+    if (sourceEvents.isEmpty())
+    {
+        return;
+    }
 
-                destFileWrite.write(dom.toString().toUtf8()
-                                    .replace("&#xd;", "") // TODO: A crutch that fixes the appearance of a large number of such substrings out of nowhere
-                                    );
+    bool needSaveFile = false;
 
-                log(QString("Updated event code %1 in object \"%2\"").arg(sourceEventType, objectName));*/
+    const QString destFileName = gms1folder + "/objects/" + objectName + ".object.gmx";
+    QFile destFileRead(destFileName);
+    if (!destFileRead.exists())
+    {
+        log(QString("File \"%1\" not found").arg(destFileName));
+        return;
+    }
+
+    if (!destFileRead.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        log(QString("Failed to open file \"%1\" for read").arg(destFileName));
+        return;
+    }
+
+    QDomDocument dom;
+    if (!dom.setContent(&destFileRead))
+    {
+        log(QString("Failed to load DOM content from \"%1\"").arg(destFileName));
+        return;
+    }
+
+    qDebug() << destFileName;
+
+    const QDomNodeList events = dom.namedItem("object").namedItem("events").childNodes();
+
+    for (int i = 0; i < events.count(); ++i)
+    {
+        const QDomNode event = events.at(i);
+
+        const QString destEventType = event.attributes().namedItem("eventtype").nodeValue();
+        const QString destEventId = event.attributes().namedItem("enumb").nodeValue();
+        const QString destEventWith = event.attributes().namedItem("ename").nodeValue();
+
+        if (gms1EventTypeToGmk(destEventType).isEmpty())
+        {
+            log(QString("Unknown event type \"%1\" in object \"%2\"").arg(destEventType).arg(objectName));
+            continue;
+        }
+
+        const SourceEvent* sourceEvent = nullptr;
+
+        for (const SourceEvent& sourceEvent_ : sourceEvents)
+        {
+            if (gms1EventTypeToGmk(destEventType) == sourceEvent_.type && destEventId == sourceEvent_.id && destEventWith == sourceEvent_.with)
+            {
+                sourceEvent = &sourceEvent_;
             }
         }
+
+        if (!sourceEvent)
+        {
+            log(QString("Not found GM7/8 event for GMS1 event \"%1\" (%2) in object \"%3\"").arg(destEventType, destEventType, objectName));
+            continue;
+        }
+
+        int sourceCodeIndex = 0;
+        int destCodes = 0;
+        const QDomNodeList actionNodes = event.childNodes();
+        for (int i = 0; i < actionNodes.count(); ++i)
+        {
+            const QDomNode action = actionNodes.at(i);
+            if (action.nodeName() != "action")
+            {
+                continue;
+            }
+
+            if (action.namedItem("kind").firstChild().nodeValue() == "7")
+            {
+                destCodes++;
+            }
+            else
+            {
+                continue;
+            }
+
+            QDomNode codeNode = action.namedItem("arguments").namedItem("argument").namedItem("string").firstChild();
+
+            if (sourceCodeIndex >= sourceEvent->codes.count())
+            {
+                log(QString("Fewer GM7/8 codes than GMS1 codes in event \"%1\" (%2) in object \"%3\"").arg(destEventType, destEventType, objectName));
+                continue;
+            }
+
+            codeNode.setNodeValue(sourceEvent->codes.at(sourceCodeIndex));
+
+            needSaveFile = true;
+
+            sourceCodeIndex++;
+        }
+
+        if (destCodes != sourceEvent->codes.count())
+        {
+            log(QString("The number of GM7/8 codes (%1) does not match the number of GMS1 codes (%2) in object \"%3\", event: %4 (%5)")
+                .arg(sourceEvent->codes.count()).arg(destCodes).arg(objectName, sourceEvent->type, destEventType));
+        }
+    }
+
+    if (needSaveFile)
+    {
+        destFileRead.close();
+
+        QFile destFileWrite(destFileName);
+        if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+        {
+            log(QString("Failed to open file \"%1\" for write").arg(destFileName));
+            return;
+        }
+
+        destFileWrite.write(dom.toString().toUtf8());
+
+        log(QString("Corrected file \"%1\"").arg(destFileName));
     }
 }
 
