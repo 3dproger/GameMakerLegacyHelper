@@ -2,7 +2,6 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QDir>
-#include <QTextStream>
 
 namespace
 {
@@ -32,7 +31,6 @@ void GMS2Corrector::breakToExit(const QString& gms2folder)
 
         if (!isContainsWord(data, "break"))
         {
-            log(QString("Ignore file \"%1\", not contains 'break'").arg(fileName));
             continue;
         }
 
@@ -43,16 +41,16 @@ void GMS2Corrector::breakToExit(const QString& gms2folder)
         }
 
         QFile file(fileName);
-        if (!file.open(QFile::WriteOnly | QFile::Truncate))
+        if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
         {
             log(QString("Failed to open file \"%1\"").arg(fileName));
             continue;
         }
 
-        QTextStream out(&file);
-        out << data;
+        data = data.replace("break", "exit");
+        file.write(data);
 
-        log(QString("Converted file \"%1\"").arg(fileName));
+        log(QString("Replaced 'break' to 'exit' in file \"%1\"").arg(fileName));
     }
 
     log("Done!");
@@ -81,7 +79,7 @@ void GMS2Corrector::replace(const QString& gms2folder, const QString &from, cons
         }
 
         QFile file(fileName);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+        if (!file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
         {
             log(QString("Failed to open file \"%1\" for write").arg(fileName));
             continue;
@@ -165,7 +163,7 @@ void GMS2Corrector::log(const QString &text)
 QByteArray GMS2Corrector::readFile(const QString &fileName)
 {
     QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly))
+    if (!file.open(QFile::ReadOnly | QFile::Text))
     {
         log(QString("Failed to open file \"%1\"").arg(file.fileName()));
         return QByteArray();

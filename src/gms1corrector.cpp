@@ -249,7 +249,7 @@ void GMS1Corrector::correctObjectsCodes(const QString &gmkSplitOutput, const QSt
         for (const QFileInfo& eventFile : eventsFiles)
         {
             QFile sourceFile(eventFile.absoluteFilePath());
-            if (!sourceFile.open(QIODevice::OpenModeFlag::ReadOnly | QIODevice::OpenModeFlag::Text))
+            if (!sourceFile.open(QFile::OpenModeFlag::ReadOnly | QFile::OpenModeFlag::Text))
             {
                 log(QString("Failed to open file \"%1\"").arg(eventFile.absoluteFilePath()));
                 continue;
@@ -304,7 +304,7 @@ void GMS1Corrector::correctObjectCodes(const QString &objectName, const QString&
         return;
     }
 
-    if (!destFileRead.open(QIODevice::ReadOnly | QIODevice::Text))
+    if (!destFileRead.open(QFile::ReadOnly | QFile::Text))
     {
         log(QString("Failed to open file \"%1\" for read").arg(destFileName));
         return;
@@ -396,7 +396,7 @@ void GMS1Corrector::correctObjectCodes(const QString &objectName, const QString&
         destFileRead.close();
 
         QFile destFileWrite(destFileName);
-        if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+        if (!destFileWrite.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
         {
             log(QString("Failed to open file \"%1\" for write").arg(destFileName));
             return;
@@ -422,7 +422,7 @@ void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, cons
 
         const QString roomName = sourceRoomFileInfo.fileName().left(sourceRoomFileInfo.fileName().length() - 4);
         QFile sourceFile(sourceFileName);
-        if (!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        if (!sourceFile.open(QFile::ReadOnly | QFile::Text))
         {
             log(QString("Failed to open file \"%1\" for read").arg(sourceFileName));
             return;
@@ -457,7 +457,7 @@ void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, cons
         const QString destFileName = gms1folder + "/rooms/" + roomName + ".room.gmx";
 
         QFile destFileRead(destFileName);
-        if (!destFileRead.open(QIODevice::ReadOnly | QIODevice::Text))
+        if (!destFileRead.open(QFile::ReadOnly | QFile::Text))
         {
             log(QString("Failed to open file \"%1\" for read").arg(destFileName));
             return;
@@ -516,7 +516,7 @@ void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, cons
         destFileRead.close();
 
         QFile destFileWrite(destFileName);
-        if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+        if (!destFileWrite.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
         {
             log(QString("Failed to open file \"%1\" for write").arg(destFileName));
             return;
