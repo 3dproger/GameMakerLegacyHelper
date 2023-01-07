@@ -23,15 +23,10 @@ private:
         QStringList codes;
     };
 
-    static void log(const QString& text);
-
     static void copyScripts(const QString& gmkSplitOutput, const QString& gms1folder);
-    static void copyObjectCodes(const QString& gmkSplitOutput, const QString& gms1folder);
-    static void copyObjectCode(const QString& objectName, const QString& gms1folder, const QList<SourceEvent>& sourceEvents);
 
-    static void copyRoomCodes(const QString& gmkSplitOutput, const QString& gms1folder);
+    static void correctObjectsCodes(const QString& gmkSplitOutput, const QString& gms1folder);
+    static void correctObjectCodes(const QString& objectName, const QString& gms1folder, const QList<SourceEvent>& sourceEvents);
 
-    static QString gms1EventTypeToGmk(const QString& type);
-
-    static void domToStringCorrected(QString& result, const QDomNode& node, int intend = 0);
+    static void correctRoomsCreationCode(const QString& gmkSplitOutput, const QString& gms1folder);
 };

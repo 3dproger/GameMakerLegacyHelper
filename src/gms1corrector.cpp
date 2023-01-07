@@ -13,6 +13,15 @@ namespace
 {
 
 static std::function<void(const QString&)> logCallback = nullptr;
+void log(const QString &text)
+{
+    qDebug(text.toUtf8());
+
+    if (logCallback)
+    {
+        logCallback(text);
+    }
+}
 
 bool removeDir(QString dirName)
 {
@@ -42,6 +51,66 @@ bool removeDir(QString dirName)
     }
 
     return result;
+}
+
+QString gms1EventTypeToGmk(const QString& type)
+{
+    if (type == "0")
+    {
+        return "CREATE";
+    }
+
+    if (type == "1")
+    {
+        return "DESTROY";
+    }
+
+    if (type == "2")
+    {
+        return "ALARM";
+    }
+
+    if (type == "3")
+    {
+        return "STEP";
+    }
+
+    if (type == "4")
+    {
+        return "COLLISION";
+    }
+
+    if (type == "5")
+    {
+        return "KEYBOARD";
+    }
+
+    if (type == "6")
+    {
+        //TODO:
+    }
+
+    if (type == "7")
+    {
+        return "OTHER";
+    }
+
+    if (type == "8")
+    {
+        return "DRAW";
+    }
+
+    if (type == "9")
+    {
+        return "KEYPRESS";
+    }
+
+    if (type == "10")
+    {
+        return "KEYRELEASE";
+    }
+
+    return QString();
 }
 
 }
@@ -126,20 +195,10 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
     }
 
     copyScripts(gmkSplitOutput, gms1folder);
-    copyObjectCodes(gmkSplitOutput, gms1folder);
-    copyRoomCodes(gmkSplitOutput, gms1folder);
+    correctObjectsCodes(gmkSplitOutput, gms1folder);
+    correctRoomsCreationCode(gmkSplitOutput, gms1folder);
 
     log("Done!");
-}
-
-void GMS1Corrector::log(const QString &text)
-{
-    qDebug(text.toUtf8());
-
-    if (logCallback)
-    {
-        logCallback(text);
-    }
 }
 
 void GMS1Corrector::copyScripts(const QString& gmkSplitOutput, const QString& gms1folder)
@@ -171,7 +230,7 @@ void GMS1Corrector::copyScripts(const QString& gmkSplitOutput, const QString& gm
     }
 }
 
-void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString &gms1folder)
+void GMS1Corrector::correctObjectsCodes(const QString &gmkSplitOutput, const QString &gms1folder)
 {
     QDirIterator objectsDirIt(gmkSplitOutput + "/Objects", QStringList() << "*.events", QDir::Filter::Dirs, QDirIterator::Subdirectories);
     while (objectsDirIt.hasNext())
@@ -219,11 +278,11 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             events.append(sourceEvent);
         }
 
-        copyObjectCode(objectName, gms1folder, events);
+        correctObjectCodes(objectName, gms1folder, events);
     }
 }
 
-void GMS1Corrector::copyObjectCode(const QString &objectName, const QString& gms1folder, const QList<SourceEvent> &sourceEvents)
+void GMS1Corrector::correctObjectCodes(const QString &objectName, const QString& gms1folder, const QList<SourceEvent> &sourceEvents)
 {
     if (sourceEvents.isEmpty())
     {
@@ -344,127 +403,11 @@ void GMS1Corrector::copyObjectCode(const QString &objectName, const QString& gms
     }
 }
 
-void GMS1Corrector::copyRoomCodes(const QString &gmkSplitOutput, const QString &gms1folder)
+void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, const QString &gms1folder)
 {
-
-}
-
-QString GMS1Corrector::gms1EventTypeToGmk(const QString& type)
-{
-    if (type == "0")
+    QDirIterator objectsDirIt(gmkSplitOutput + "/Objects", QStringList() << "*.events", QDir::Filter::Dirs, QDirIterator::Subdirectories);
+    while (objectsDirIt.hasNext())
     {
-        return "CREATE";
-    }
-
-    if (type == "1")
-    {
-        return "DESTROY";
-    }
-
-    if (type == "2")
-    {
-        return "ALARM";
-    }
-
-    if (type == "3")
-    {
-        return "STEP";
-    }
-
-    if (type == "4")
-    {
-        return "COLLISION";
-    }
-
-    if (type == "5")
-    {
-        return "KEYBOARD";
-    }
-
-    if (type == "6")
-    {
-        //TODO:
-    }
-
-    if (type == "7")
-    {
-        return "OTHER";
-    }
-
-    if (type == "8")
-    {
-        return "DRAW";
-    }
-
-    if (type == "9")
-    {
-        return "KEYPRESS";
-    }
-
-    if (type == "10")
-    {
-        return "KEYRELEASE";
-    }
-
-    return QString();
-}
-
-void GMS1Corrector::domToStringCorrected(QString& result, const QDomNode& node, int intend)
-{
-    if (node.isComment())
-    {
-        return;
-    }
-
-    if (!node.nodeName().startsWith("#"))
-    {
-        if (result.endsWith(">"))
-        {
-            result += "\n";
-
-            for (int i = 0; i < intend; ++i)
-            {
-                result += "  ";
-            }
-        }
-
-        result += "<" + node.nodeName();
-
-        const QDomNamedNodeMap attributes = node.attributes();
-        for (int i = 0; i < attributes.count(); ++i)
-        {
-            const QDomNode attribute = attributes.item(i);
-
-            result += " " + attribute.nodeName() + "=\"" + attribute.nodeValue() + "\"";
-        }
-
-        result += ">";
-    }
-
-    if (!node.nodeValue().isEmpty())
-    {
-        result += node.nodeValue();
-    }
-
-    const QDomNodeList children = node.childNodes();
-    for (int i = 0; i < children.count(); ++i)
-    {
-        const QDomNode child = children.at(i);
-        if (child.isText() )//&& !node.nodeValue().isEmpty())
-        {
-            continue;
-        }
-
-        domToStringCorrected(result, child, intend + 1);
-    }
-
-    if (!node.nodeName().startsWith("#"))
-    {
-        result += "</" + node.nodeName() + ">\n";
-
-        for (int i = 0; i < intend; ++i)
-        {
-            result += "  ";
-        }
+        const QDir objectDir(objectsDirIt.next());
     }
 }
