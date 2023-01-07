@@ -399,15 +399,68 @@ void GMS1Corrector::correctObjectCodes(const QString &objectName, const QString&
 
         destFileWrite.write(dom.toString().toUtf8());
 
-        log(QString("Corrected file \"%1\"").arg(destFileName));
+        log(QString("Corrected object file \"%1\"").arg(destFileName));
     }
 }
 
 void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, const QString &gms1folder)
 {
-    QDirIterator objectsDirIt(gmkSplitOutput + "/Objects", QStringList() << "*.events", QDir::Filter::Dirs, QDirIterator::Subdirectories);
-    while (objectsDirIt.hasNext())
+    QDirIterator roomsDirIt(gmkSplitOutput + "/Rooms", QStringList() << "*.xml", QDir::Filter::Files, QDirIterator::Subdirectories);
+    while (roomsDirIt.hasNext())
     {
-        const QDir objectDir(objectsDirIt.next());
+        const QString sourceFileName = roomsDirIt.next();
+        const QFileInfo sourceRoomFileInfo(sourceFileName);
+        if (sourceRoomFileInfo.fileName() == "_resources.list.xml")
+        {
+            continue;
+        }
+
+        const QString roomName = sourceRoomFileInfo.fileName().left(sourceRoomFileInfo.fileName().length() - 4);
+        QFile sourceFile(sourceFileName);
+        if (!sourceFile.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            log(QString("Failed to open file \"%1\" for read").arg(sourceFileName));
+            return;
+        }
+
+        QDomDocument sourceDom;
+        if (!sourceDom.setContent(&sourceFile))
+        {
+            log(QString("Failed to load DOM content from \"%1\"").arg(sourceFile.fileName()));
+            continue;
+        }
+
+        const QString code = sourceDom.namedItem("room").namedItem("creationCode").firstChild().nodeValue();
+
+        const QString destFileName = gms1folder + "/rooms/" + roomName + ".room.gmx";
+
+        QFile destFileRead(destFileName);
+        if (!destFileRead.open(QIODevice::ReadOnly | QIODevice::Text))
+        {
+            log(QString("Failed to open file \"%1\" for read").arg(destFileName));
+            return;
+        }
+
+        QDomDocument destDom;
+        if (!destDom.setContent(&destFileRead))
+        {
+            log(QString("Failed to load DOM content from \"%1\"").arg(destFileRead.fileName()));
+            continue;
+        }
+
+        destDom.namedItem("room").namedItem("code").firstChild().setNodeValue(code);
+
+        destFileRead.close();
+
+        QFile destFileWrite(destFileName);
+        if (!destFileWrite.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+        {
+            log(QString("Failed to open file \"%1\" for write").arg(destFileName));
+            return;
+        }
+
+        destFileWrite.write(destDom.toString().toUtf8());
+
+        log(QString("Corrected room file \"%1\"").arg(destFileName));
     }
 }
