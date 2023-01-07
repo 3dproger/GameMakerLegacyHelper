@@ -221,7 +221,7 @@ void GMS1Corrector::copyScripts(const QString& gmkSplitOutput, const QString& gm
 
         if (QFile::copy(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()))
         {
-            log(QString("Copied \"%1\" to \"%2\"").arg(sourceFile.absoluteFilePath(), destFile.absoluteFilePath()));
+            log(QString("Corrected script code \"%1\"").arg(sourceFile.baseName()));
         }
         else
         {
@@ -399,7 +399,7 @@ void GMS1Corrector::correctObjectCodes(const QString &objectName, const QString&
 
         destFileWrite.write(dom.toString().toUtf8());
 
-        log(QString("Corrected object file \"%1\"").arg(destFileName));
+        log(QString("Corrected object code \"%1\"").arg(objectName));
     }
 }
 
@@ -432,6 +432,23 @@ void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, cons
 
         const QString code = sourceDom.namedItem("room").namedItem("creationCode").firstChild().nodeValue();
 
+        QList<Instance> instances;
+
+        const QDomNodeList domInstances = sourceDom.namedItem("room").namedItem("instances").childNodes();
+        for (int i = 0; i < domInstances.count(); ++i)
+        {
+            const QDomNode domInstance = domInstances.at(i);
+
+            Instance instance;
+
+            instance.objectName = domInstance.namedItem("object").firstChild().nodeValue();
+            instance.x = domInstance.namedItem("position").attributes().namedItem("x").nodeValue().toLongLong();
+            instance.y = domInstance.namedItem("position").attributes().namedItem("y").nodeValue().toLongLong();
+            instance.creationCode = domInstance.namedItem("creationCode").firstChild().nodeValue();
+
+            instances.append(instance);
+        }
+
         const QString destFileName = gms1folder + "/rooms/" + roomName + ".room.gmx";
 
         QFile destFileRead(destFileName);
@@ -448,7 +465,48 @@ void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, cons
             continue;
         }
 
-        destDom.namedItem("room").namedItem("code").firstChild().setNodeValue(code);
+        QStringList msgs;
+
+        QDomNode roomNode = destDom.namedItem("room");
+        roomNode.namedItem("code").firstChild().setNodeValue(code);
+
+        QDomNodeList destInstancesNodes = roomNode.namedItem("instances").childNodes();
+
+        if (instances.count() != destInstancesNodes.count())
+        {
+            log(QString("The number of instances in projects GM7/8 (count: %1) and GMS1 (count: %2) does not match in room \"%3\"")
+                .arg(instances.count()).arg(destInstancesNodes.count()).arg(roomName));
+        }
+
+        for (int i = 0; i < std::min(destInstancesNodes.count(), instances.count()); ++i)
+        {
+            QDomNamedNodeMap attributes = destInstancesNodes.at(i).attributes();
+
+            QDomNode destCodeNode = attributes.namedItem("code");
+            if (destCodeNode.nodeValue().isEmpty())
+            {
+                continue;
+            }
+
+            Instance destInstance;
+
+            destInstance.objectName = attributes.namedItem("objName").nodeValue();
+            destInstance.x = attributes.namedItem("x").nodeValue().toLongLong();
+            destInstance.y = attributes.namedItem("y").nodeValue().toLongLong();
+
+            const Instance sourceInstance = instances.at(i);
+
+            if (destInstance.isSameInstance(sourceInstance))
+            {
+                destCodeNode.setNodeValue(sourceInstance.creationCode);
+
+                msgs.append(QString("Corrected instance creation code %1 in room \"%2\"").arg(destInstance.getInfoString(), roomName));
+            }
+            else
+            {
+                msgs.append(QString("At index %1 found %2 but need %3 in room \"%4\"").arg(i).arg(sourceInstance.getInfoString(), destInstance.getInfoString(), roomName));
+            }
+        }
 
         destFileRead.close();
 
@@ -461,6 +519,11 @@ void GMS1Corrector::correctRoomsCreationCode(const QString &gmkSplitOutput, cons
 
         destFileWrite.write(destDom.toString().toUtf8());
 
-        log(QString("Corrected room file \"%1\"").arg(destFileName));
+        msgs.append(QString("Corrected room creation code \"%1\"").arg(roomName));
+
+        for (const QString& msg : msgs)
+        {
+            log(msg);
+        }
     }
 }

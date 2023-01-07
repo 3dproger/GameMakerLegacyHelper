@@ -23,6 +23,25 @@ private:
         QStringList codes;
     };
 
+    struct Instance
+    {
+        QString objectName;
+        int64_t x = 0;
+        int64_t y = 0;
+        QString creationCode;
+
+        QString getInfoString() const
+        {
+            return QString("\"%1\" at (%2, %3)").arg(objectName).arg(x).arg(y);
+        }
+
+        bool isSameInstance(const Instance& other) const
+        {
+            return x == other.x && y == other.y && objectName == other.objectName;
+        }
+    };
+    friend bool operator<(const Instance& a, const Instance& b);
+
     static void copyScripts(const QString& gmkSplitOutput, const QString& gms1folder);
 
     static void correctObjectsCodes(const QString& gmkSplitOutput, const QString& gms1folder);
