@@ -35,7 +35,7 @@
          <x>0</x>
          <y>0</y>
          <width>757</width>
-         <height>749</height>
+         <height>717</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -126,9 +126,9 @@
          </layout>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_2">
+         <widget class="QGroupBox" name="groupBoxAnsiToUtf8">
           <property name="title">
-           <string>ANSI to UTF8 corrector</string>
+           <string>ANSI (current OS encoding) to UTF-8 corrector</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
            <item row="1" column="0">
