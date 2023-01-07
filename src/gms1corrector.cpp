@@ -217,102 +217,6 @@ void GMS1Corrector::copyObjectCodes(const QString &gmkSplitOutput, const QString
             }
 
             events.append(sourceEvent);
-
-            /*bool needSaveFile = false;
-
-            const QString destFileName = gms1folder + "/objects/" + objectName + ".object.gmx";
-            QFile destFileRead(destFileName);
-            if (!destFileRead.exists())
-            {
-                log(QString("File \"%1\" not found").arg(destFileName));
-                continue;
-            }
-
-            if (!destFileRead.open(QIODevice::ReadOnly | QIODevice::Text))
-            {
-                log(QString("Failed to open file \"%1\"").arg(destFileName));
-                continue;
-            }
-
-            qDebug() << eventFile.absoluteFilePath();
-            qDebug() << destFileName;
-
-            QDomDocument dom;
-            if (!dom.setContent(&destFileRead))
-            {
-                log(QString("Failed to load DOM content from \"%1\"").arg(destFileName));
-                continue;
-            }
-
-            const QDomNodeList events = dom.namedItem("object").namedItem("events").childNodes();
-
-            for (int i = 0; i < events.count(); ++i)
-            {
-                const QDomNode event = events.at(i);
-
-                const QString destEventType = event.attributes().namedItem("eventtype").nodeValue();
-                const QString destEventId = event.attributes().namedItem("enumb").nodeValue();
-                const QString destEventWith = event.attributes().namedItem("ename").nodeValue();
-
-                if (gms1EventTypeToGmk(destEventType).isEmpty())
-                {
-                    log(QString("Unknown event type \"%1\" in object \"%2\"").arg(destEventType).arg(objectName));
-                    continue;
-                }
-
-                if (gms1EventTypeToGmk(destEventType) != sourceEventType || destEventId != sourceEventId || destEventWith != sourceEventWith)
-                {
-                    continue;
-                }
-
-                int sourceCodeIndex = 0;
-                int destCodes = 0;
-                const QDomNodeList actionNodes = event.childNodes();
-                for (int i = 0; i < actionNodes.count(); ++i)
-                {
-                    const QDomNode action = actionNodes.at(i);
-                    if (action.nodeName() != "action")
-                    {
-                        continue;
-                    }
-
-                    if (action.namedItem("kind").firstChild().nodeValue() == "7")
-                    {
-                        destCodes++;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    QDomNode codeNode = action.namedItem("arguments").namedItem("argument").namedItem("string").firstChild();
-
-                    if (sourceCodeIndex >= sourceCodes.count())
-                    {
-                        log(QString("Fewer source codes than destination codes in object \"%1\"").arg(objectName));
-                        continue;
-                    }
-
-                    codeNode.setNodeValue(sourceCodes.at(sourceCodeIndex));
-
-                    needSaveFile = true;
-
-                    sourceCodeIndex++;
-                }
-
-                if (destCodes != sourceCodes.count())
-                {
-                    log(QString("The number of source codes (%1) does not match the number of destination codes (%2) in object \"%3\", event: %4 (%5)")
-                        .arg(sourceCodes.count()).arg(destCodes).arg(objectName, sourceEventType, destEventType));
-                }
-            }
-
-            if (needSaveFile)
-            {
-                destFileRead.close();
-
-                qDebug(dom.toByteArray());
-            }*/
         }
 
         copyObjectCode(objectName, gms1folder, events);
@@ -349,8 +253,6 @@ void GMS1Corrector::copyObjectCode(const QString &objectName, const QString& gms
         return;
     }
 
-    qDebug() << destFileName;
-
     const QDomNodeList events = dom.namedItem("object").namedItem("events").childNodes();
 
     for (int i = 0; i < events.count(); ++i)
@@ -363,7 +265,7 @@ void GMS1Corrector::copyObjectCode(const QString &objectName, const QString& gms
 
         if (gms1EventTypeToGmk(destEventType).isEmpty())
         {
-            log(QString("Unknown event type \"%1\" in object \"%2\"").arg(destEventType).arg(objectName));
+            log(QString("Unknown event type \"%1\" in object \"%2\"").arg(destEventType, objectName));
             continue;
         }
 
