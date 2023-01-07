@@ -85,6 +85,11 @@ void MainWindow::on_pushButtonConvertFunctions_clicked()
         GMS2Corrector::replace(ui->lineEditGMS2Folder->text(), "display_reset()", "display_reset(0, false)");
     }
 
+    if (ui->checkBoxDisplaySetSize->isChecked())
+    {
+        GMS2Corrector::replace(ui->lineEditGMS2Folder->text(), "display_set_size(", "display_set_gui_size(");
+    }
+
     if (log->isEmpty())
     {
         log->addLine(tr("Nothing changed"));

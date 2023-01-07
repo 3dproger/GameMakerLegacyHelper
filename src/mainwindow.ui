@@ -35,7 +35,7 @@
          <x>0</x>
          <y>-131</y>
          <width>757</width>
-         <height>711</height>
+         <height>743</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -275,6 +275,13 @@
               <widget class="QCheckBox" name="checkBoxDisplayReset">
                <property name="text">
                 <string>'display_reset()' -&gt; 'display_reset(0, false)'</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="checkBoxDisplaySetSize">
+               <property name="text">
+                <string>'display_set_size(' -&gt; 'display_set_gui_size('</string>
                </property>
               </widget>
              </item>
