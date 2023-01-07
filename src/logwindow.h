@@ -16,6 +16,7 @@ public:
     ~LogWindow();
     void clear();
     void addLine(const QString& line);
+    bool isEmpty() const;
 
 private slots:
     void on_pushButtonOk_clicked();

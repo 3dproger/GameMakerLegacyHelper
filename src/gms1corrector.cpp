@@ -187,12 +187,17 @@ void GMS1Corrector::convertAnsiToUtf8(const QString &gmkFileName, const QString 
     });
 
     process.start(gmkSplit.absoluteFilePath(), { gmk.absoluteFilePath(), gmkSplitOutput });
+
+    log(QString("GmkSplit started (%1)").arg(gmkSplit.absoluteFilePath()));
+
     process.waitForFinished(-1);
     if (process.exitStatus() == QProcess::ExitStatus::CrashExit)
     {
         log(QString("Failed to execute GmkSplit, exit code: %1").arg(process.exitCode()));
         return;
     }
+
+    log("GmkSplit finished");
 
     copyScripts(gmkSplitOutput, gms1folder);
     correctObjectsCodes(gmkSplitOutput, gms1folder);

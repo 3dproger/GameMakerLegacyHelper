@@ -29,6 +29,11 @@ void LogWindow::addLine(const QString &line)
     ui->textBrowserLog->append(line);
 }
 
+bool LogWindow::isEmpty() const
+{
+    return ui->textBrowserLog->toPlainText().isEmpty();
+}
+
 void LogWindow::on_pushButtonOk_clicked()
 {
     close();
