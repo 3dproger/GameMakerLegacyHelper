@@ -68,7 +68,29 @@ void MainWindow::on_pushButtonBreakToExitConvert_clicked()
 
 void MainWindow::on_pushButtonConvertFunctions_clicked()
 {
+    log->clear();
 
+    if (ui->checkBoxWindowCaption->isChecked())
+    {
+        GMS2Corrector::replace(ui->lineEditGMS2Folder->text(), "window_set_taskbar_caption(", "window_set_caption(");
+    }
+
+    if (ui->checkBoxVariableInstanceExists->isChecked())
+    {
+        GMS2Corrector::replace(ui->lineEditGMS2Folder->text(), "variable_local_exists(", "variable_instance_exists(id, ");
+    }
+
+    if (ui->checkBoxDisplayReset->isChecked())
+    {
+        GMS2Corrector::replace(ui->lineEditGMS2Folder->text(), "display_reset()", "display_reset(0, false)");
+    }
+
+    if (log->isEmpty())
+    {
+        log->addLine(tr("Nothing changed"));
+    }
+
+    log->show();
 }
 
 void MainWindow::on_pushButton_clicked()

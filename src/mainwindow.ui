@@ -33,9 +33,9 @@
        <property name="geometry">
         <rect>
          <x>0</x>
-         <y>0</y>
+         <y>-131</y>
          <width>757</width>
-         <height>743</height>
+         <height>711</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -254,13 +254,13 @@
           <item>
            <widget class="QGroupBox" name="groupBox">
             <property name="title">
-             <string>Functions</string>
+             <string>Renaming functions and arguments correction</string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout">
              <item>
               <widget class="QCheckBox" name="checkBoxWindowCaption">
                <property name="text">
-                <string>'window_set_taskbar_caption' -&gt; 'window_set_caption'</string>
+                <string>'window_set_taskbar_caption(' -&gt; 'window_set_caption('</string>
                </property>
               </widget>
              </item>
@@ -275,13 +275,6 @@
               <widget class="QCheckBox" name="checkBoxDisplayReset">
                <property name="text">
                 <string>'display_reset()' -&gt; 'display_reset(0, false)'</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="checkBoxSpriteCreateFromSurface">
-               <property name="text">
-                <string>'sprite_create_from_surface' - remove 6 and 9 argument</string>
                </property>
               </widget>
              </item>
