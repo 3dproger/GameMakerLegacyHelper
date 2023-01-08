@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    setWindowTitle(QApplication::applicationName() + " v" + QApplication::applicationVersion());
+
     GMS1Corrector::setLogCallback([this](const QString& text)
     {
         log->addLine(text);
