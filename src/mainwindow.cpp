@@ -59,14 +59,14 @@ void MainWindow::on_pushButtonFindGMS2Folder_clicked()
     ui->lineEditGMS2Folder->setText(dirName);
 }
 
-void MainWindow::on_pushButtonBreakToExitConvert_clicked()
+void MainWindow::on_pushButtonBreakToExitCorrect_clicked()
 {
     log->clear();
     GMS2Corrector::breakToExit(ui->lineEditGMS2Folder->text());
     log->show();
 }
 
-void MainWindow::on_pushButtonConvertFunctions_clicked()
+void MainWindow::on_pushButtonCorrectFunctions_clicked()
 {
     log->clear();
 
@@ -98,7 +98,7 @@ void MainWindow::on_pushButtonConvertFunctions_clicked()
     log->show();
 }
 
-void MainWindow::on_pushButton_clicked()
+void MainWindow::on_pushButtonCorrectTextEncoding_clicked()
 {
     log->clear();
     GMS1Corrector::convertAnsiToUtf8(ui->lineEditGMKFile->text(), ui->lineEditGMS1Folder->text());

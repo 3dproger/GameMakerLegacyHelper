@@ -21,13 +21,13 @@ private slots:
 
     void on_pushButtonFindGMS2Folder_clicked();
 
-    void on_pushButtonBreakToExitConvert_clicked();
+    void on_pushButtonBreakToExitCorrect_clicked();
 
-    void on_pushButtonConvertFunctions_clicked();
+    void on_pushButtonCorrectFunctions_clicked();
 
     void on_pushButtonFindGMS1Folder_clicked();
 
-    void on_pushButton_clicked();
+    void on_pushButtonCorrectTextEncoding_clicked();
 
 private:
     Ui::MainWindow *ui;
